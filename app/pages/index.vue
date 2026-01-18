@@ -3,6 +3,9 @@ import type { Expense, ExpenseSearchPagination, PaginatedUI } from '~/types'
 import * as expenseService from '~/services/expenses'
 import Pagination from '~/components/Pagination.vue'
 import type { TableColumn } from '@nuxt/ui'
+import * as yup from 'yup'
+import { useFormValidation } from '~/composables/useFormValidation'
+import ConfirmationModal from '~/components/ConfirmationModal.vue'
 
 const toast = useToast()
 
@@ -56,7 +59,7 @@ const getCategories = async () => {
   try {
     const data = await expenseService.getCategories()
 
-    categories.value = data
+    categories.value = ['all', ...data]
   } catch (error: any) {
     toast.add({
       title: 'Uh oh! Something went wrong. The categories could not be loaded',
@@ -93,18 +96,21 @@ const handleSearchInput = async (event: Event) => {
 }
 
 const isModalOpen = ref(false)
+const isModalConfirmationOpen = ref(false)
 
 const { updateField, resetForm, state } = useForm({
   description: '',
-  amount: 0,
+  amount: '',
   category: ''
 })
-
-const schema = {
-  description: { type: 'string', required: true },
-  amount: { type: 'number', required: true },
-  category: { type: 'string', required: true }
-}
+const { schema } = useFormValidation({
+  description: yup
+    .string()
+    .required('Description is required')
+    .min(2, 'Please enter something more descriptive'),
+  amount: yup.string().required('Amount is required'),
+  category: yup.string().required('Category is required')
+})
 
 const isCreating = ref(false)
 
@@ -115,6 +121,13 @@ const closeModal = () => {
   resetForm()
   isModalOpen.value = false
   currentExpenseUpdateId.value = ''
+}
+
+const recordIdToDelete = ref<string | null>()
+
+const closeModalConfirmation = () => {
+  isModalConfirmationOpen.value = false
+  recordIdToDelete.value = null
 }
 
 const createExpense = async () => {
@@ -193,15 +206,11 @@ const handleOpenUpdateModal = (record: Expense) => {
   updateField('amount', amount)
   updateField('category', category)
 
-  console.log(currentExpenseUpdateId.value)
-
   isModalOpen.value = true
 }
 
 const updateExpense = async () => {
   try {
-    console.log({ ...state, id: currentExpenseUpdateId.value })
-
     if (hasEmptyValues(state)) {
       toast.add({
         title: 'Uh oh! Something went wrong.',
@@ -288,26 +297,35 @@ const tableColumns: TableColumn<Expense>[] = [
           size: 'md',
           color: 'error',
           variant: 'ghost',
-          onClick: () => removeExpense(row.original.id)
+          onClick: () => {
+            isModalConfirmationOpen.value = true
+
+            recordIdToDelete.value = row.original.id
+          }
         })
       ])
   }
 ]
 
-const removeExpense = async (id: string) => {
+const isDeleting = ref(false)
+
+const removeExpense = async () => {
   try {
+    isDeleting.value = true
+    const response = await expenseService.removeExpense(
+      recordIdToDelete.value as string
+    )
+
+    isDeleting.value = false
+
     isTableLoading.value = true
-    const response = await expenseService.removeExpense(id)
-
-    console.log(response.status)
-
     if (response.status === 204)
       toast.add({
         title: 'Expense removed',
         description: "Everything it's ok",
         color: 'info'
       })
-
+    isModalConfirmationOpen.value = false
     await getExpenses()
   } catch (error: any) {
     console.log(error.message)
@@ -318,6 +336,7 @@ const removeExpense = async (id: string) => {
     })
   } finally {
     isTableLoading.value = false
+    isDeleting.value = false
   }
 }
 </script>
@@ -325,7 +344,7 @@ const removeExpense = async (id: string) => {
 <template>
   <main>
     <h1
-      class="text-2xl text-green-400 p-5 md:p-10 md:text-5xl font-semibold select-none"
+      class="text-3xl text-green-400 p-5 md:p-10 md:text-5xl font-semibold select-none"
     >
       Expenses
     </h1>
@@ -344,18 +363,31 @@ const removeExpense = async (id: string) => {
       <template #body>
         <UForm
           @submit="() => {}"
-          :schema="{}"
+          :schema="schema"
           :state="state"
           class="grid gap-5"
         >
           <UFormField label="Description" name="description">
-            <UInput v-model="state.description" class="w-full" />
+            <UInput
+              v-model="state.description"
+              placeholder="Shirt"
+              class="w-full"
+            />
           </UFormField>
           <UFormField label="Amount" name="amount">
-            <UInput v-model="state.amount" type="number" class="w-full" />
+            <UInput
+              v-model="state.amount"
+              placeholder="250.00"
+              type="number"
+              class="w-full"
+            />
           </UFormField>
           <UFormField label="Category" name="category">
-            <UInput v-model="state.category" class="w-full" />
+            <UInput
+              v-model="state.category"
+              placeholder="Basics"
+              class="w-full"
+            />
           </UFormField>
           <UButton
             class="w-full flex justify-center"
@@ -373,32 +405,39 @@ const removeExpense = async (id: string) => {
       </template>
     </UModal>
     <div class="px-5 md:px-10 flex flex-col gap-5">
-      <div class="flex justify-between gap-5">
+      <div class="flex flex-col md:flex-row gap-5">
+        <!-- Input ocupa toda la primera fila en móvil -->
         <UInput
           :value="pagination.description"
           @input="handleSearchInput"
-          class="max-w-sm"
+          class="w-full md:w-60"
           placeholder="Description"
           size="xl"
         />
-        <USelectMenu
-          :items="categories"
-          :search-input="false"
-          class="w-50"
-          size="xl"
-          placeholder="Category"
-          v-model="category"
-        />
-        <UButton
-          size="xl"
-          color="neutral"
-          variant="outline"
-          :disabled="isTableLoading"
-          class="px-5 md:px-10 cursor-pointer"
-          @click="isModalOpen = true"
-          >New</UButton
-        >
+
+        <!-- Contenedor del select y botón -->
+        <div class="flex w-full md:w-auto gap-5">
+          <USelectMenu
+            :items="categories"
+            :search-input="false"
+            class="w-full md:w-50"
+            size="xl"
+            placeholder="Category"
+            v-model="category"
+          />
+          <UButton
+            size="xl"
+            color="neutral"
+            variant="outline"
+            :disabled="isTableLoading"
+            class="w-full md:w-auto px-5 md:px-10 cursor-pointer"
+            @click="isModalOpen = true"
+          >
+            New
+          </UButton>
+        </div>
       </div>
+
       <div class="min-h-63">
         <UTable
           :data="expenses"
@@ -421,6 +460,14 @@ const removeExpense = async (id: string) => {
         :current-paginated="currentPaginated"
         v-model:page="currentPaginated.page"
         v-model:limit="currentPaginated.limit"
+      />
+      <ConfirmationModal
+        title="Delete confirmation"
+        :is-modal-open="isModalConfirmationOpen"
+        @close-modal="closeModalConfirmation"
+        :on-continue="removeExpense"
+        :loading="isDeleting"
+        text="Are you sure you want to remove this expense?"
       />
     </div>
   </main>

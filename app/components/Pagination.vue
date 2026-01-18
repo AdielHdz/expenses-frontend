@@ -21,21 +21,26 @@ const emit = defineEmits<{
 }>()
 
 const page = computed({
-  get: () => props.currentPaginated.page,
+  get: () => props.pagination.page,
   set: (value: number) => emit('update:page', value)
 })
 
 const limit = computed({
-  get: () => props.currentPaginated.limit,
+  get: () => props.pagination.limit,
   set: (value: number) => emit('update:limit', value)
 })
 </script>
 
 <template>
   <div class="flex justify-between py-2.5">
+    <USelectMenu
+      :items="items as string[]"
+      :search-input="false"
+      v-model="limit"
+    />
     <UPagination
       v-model:page="page"
-      :items-per-page="pagination.limit"
+      :items-per-page="limit"
       :total="currentPaginated.total"
     />
   </div>

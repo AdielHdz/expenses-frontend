@@ -1,60 +1,128 @@
-# Nuxt Starter Template
+# 💻 Expenses Frontend (Nuxt 4)
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+Frontend de la aplicación **Expenses**, encargado de la visualización y gestión de gastos.
+Consume el backend construido con **NestJS + TypeORM + PostgreSQL**.
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+---
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+## 🚀 Tecnologías
 
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-  </picture>
-</a>
+- Nuxt 4
+- Nuxt UI
+- Vue 3
+- TypeScript
+- Pinia
+- Tailwind CSS
+- axios
 
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
+---
 
-## Quick Start
+## 📁 Estructura del proyecto
 
-```bash [Terminal]
-npm create nuxt@latest -- -t github:nuxt-ui-templates/starter
+```text
+app/
+├── assets/
+│   └── css/
+│       └── main.css
+├── components/
+│   ├── Pagination.vue
+│   └── Table.vue
+├── composables/
+│   └── useForm.ts
+├── pages/
+│   └── index.vue
+├── services/
+│   ├── axios.ts
+│   └── expenses.ts
+├── types/
+│   ├── expenses.ts
+│   ├── index.ts
+│   └── pagination.ts
+├── utils/
+│   └── validation-objects.ts
+├── app.config.ts
+└── app.vue
+
 ```
 
-## Deploy your own
+---
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
+## ⚙️ Requisitos previos
 
-## Setup
+- Node.js >= 18
+- npm o pnpm
+- Backend de Expenses corriendo
 
-Make sure to install the dependencies:
+---
+
+## 🔐 Variables de entorno
+
+Crea un archivo `.env` en la raíz del proyecto:
+
+```env
+NUXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+> ⚠️ **Nota:** Nunca subas el archivo `.env` al repositorio. Usa `.env.example` como referencia.
+
+---
+
+## 📦 Instalación
 
 ```bash
-pnpm install
+npm install
 ```
 
-## Development Server
+---
 
-Start the development server on `http://localhost:3000`:
+## ▶️ Levantar el proyecto
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
-## Production
+La aplicación estará disponible en:
 
-Build the application for production:
-
-```bash
-pnpm build
+```text
+http://localhost:3000
 ```
 
-Locally preview production build:
+---
 
-```bash
-pnpm preview
+## 🔌 Comunicación con el Backend
+
+Este frontend consume los siguientes endpoints del backend:
+
+- `GET /expenses`
+- `GET /expenses/search`
+- `GET /expenses/categories`
+- `POST /expenses`
+- `PUT /expenses/:id`
+- `DELETE /expenses/:id`
+
+Backend URL por defecto:
+
+```text
+http://localhost:3001
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+---
+
+## 🧠 Notas importantes
+
+- Las llamadas HTTP se realizan mediante **axios**
+- El proyecto está preparado para crecer de forma modular
+- El frontend es completamente independiente del backend
+
+---
+
+## 🔗 Proyectos relacionados
+
+- Backend: [https://github.com/AdielHdz/expenses-api](https://github.com/AdielHdz/expenses-api)
+
+---
+
+## 👤 Autor
+
+**Adiel Hernández**
+Frontend / Fullstack Developer

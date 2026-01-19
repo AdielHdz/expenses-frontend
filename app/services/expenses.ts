@@ -14,7 +14,7 @@ import type {
 export const createExpense = async (
   body: ExpenseCreateRequest
 ): Promise<Expense> => {
-  const response = await axios.post<Expense>('api/expenses', body)
+  const response = await axios.post<Expense>('/api/expenses', body)
 
   return response.data
 }
@@ -23,13 +23,13 @@ export const updateExpense = async (
   id: string,
   body: ExpenseUpdateRequest
 ): Promise<Expense> => {
-  const response = await axios.put<Expense>(`api/expenses/${id}`, body)
+  const response = await axios.put<Expense>(`/api/expenses/${id}`, body)
 
   return response.data
 }
 
 export const getExpenseById = async (id: string): Promise<Expense> => {
-  const response = await axios.get<Expense>(`api/expenses/${id}`)
+  const response = await axios.get<Expense>(`/api/expenses/${id}`)
 
   return response.data
 }
@@ -45,7 +45,7 @@ export const getExpenses = async (
   if (limit != null) params.append('limit', limit.toString())
 
   const { data } = await axios.get<PaginatedResponse<Expense>>(
-    `api/expenses?${params}`
+    `/api/expenses?${params}`
   )
 
   if (!data.data.length) throw new Error('No expenses found')
@@ -67,7 +67,7 @@ export const searchExpenses = async (
   params.append('description', description)
 
   const { data } = await axios.get<PaginatedResponse<Expense>>(
-    `api/expenses/search?${params.toString()}`
+    `/api/expenses/search?${params.toString()}`
   )
   if (!data.data.length) throw new Error('No expenses found')
 
@@ -75,13 +75,13 @@ export const searchExpenses = async (
 }
 
 export const removeExpense = async (id: string): Promise<AxiosResponse> => {
-  const response = await axios.delete(`api/expenses/${id}`)
+  const response = await axios.delete(`/api/expenses/${id}`)
 
   return response
 }
 
 export const getCategories = async (): Promise<string[]> => {
-  const response = await axios.get('api/expenses/categories')
+  const response = await axios.get('/api/expenses/categories')
 
   return response.data
 }
